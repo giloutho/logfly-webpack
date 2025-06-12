@@ -1,0 +1,42 @@
+{
+  "name": "logfly-webpack",
+  "productName": "logfly-webpack",
+  "version": "1.0.0",
+  "description": "An Electron application built with webpack",
+  "main": ".webpack/main",
+  "scripts": {
+    "start": "electron-forge start",
+    "package": "electron-forge package",
+    "make": "electron-forge make",
+    "publish": "electron-forge publish",
+    "lint": "echo \"No linting configured\""
+  },
+  "devDependencies": {
+    "@electron-forge/cli": "^7.5.0",
+    "@electron-forge/maker-deb": "^7.5.0",
+    "@electron-forge/maker-rpm": "^7.5.0",
+    "@electron-forge/maker-squirrel": "^7.5.0",
+    "@electron-forge/maker-zip": "^7.5.0",
+    "@electron-forge/plugin-auto-unpack-natives": "^7.5.0",
+    "@electron-forge/plugin-fuses": "^7.5.0",
+    "@electron-forge/plugin-webpack": "^7.5.0",
+    "@electron/fuses": "^1.8.0",
+    "@vercel/webpack-asset-relocator-loader": "1.7.3",
+    "copy-webpack-plugin": "^13.0.0",
+    "css-loader": "^6.0.0",
+    "electron": "36.4.0",
+    "node-loader": "^2.0.0",
+    "style-loader": "^3.0.0"
+  },
+  "keywords": [],
+  "author": "Contact <contact@logfly.org>",
+  "license": "MIT",
+  "dependencies": {
+    "bootstrap": "^5.3.6",
+    "bootstrap-icons": "^1.13.1",
+    "datatables.net-bs5": "^2.3.2",
+    "datatables.net-select-bs5": "^3.0.1",
+    "electron-squirrel-startup": "^1.0.1",
+    "leaflet": "^1.9.4"
+  }
+}
