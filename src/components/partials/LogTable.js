@@ -3,13 +3,28 @@ class LogTable extends HTMLElement {
 
     connectedCallback() {
         this.render();
+        this.querySelector('#show-marker-btn').addEventListener('click', () => {
+            this.dispatchEvent(new CustomEvent('show-marker', {
+                bubbles: true, // Permet à l'événement de remonter dans le DOM
+                detail: { markerId: 1, coord : [46.2044, 6.1432], msg : '<b>Yes...</b><br>Genève' } // Vous pouvez passer des infos ici
+            }));
+        });
     }
 
   render() {
     this.innerHTML = `
+                <style>
+                    :host {
+                        flex: 1;
+                        min-height: 0;
+                        display: block;
+                        overflow: auto;
+                    }
 
+                </style>       
                 <div class="sidebar">
                     <h3 class="mt-5 mb-4 border-bottom pb-2">Progression</h3>
+                    <button id="show-marker-btn" class="btn btn-primary mb-3">Afficher un marker</button>
                     <div class="mb-3">
                         <p class="mb-1">Intégration des fonctionnalités</p>
                         <div class="progress mb-4" style="height: 8px;">

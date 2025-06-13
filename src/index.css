@@ -2,6 +2,11 @@
     Simple exemple from https://getbootstrap.com/docs/5.0/examples/navbar-fixed/
     Show it is fixed to the top 
 */
+html, body {
+  height: 100%;
+  margin: 0;
+}
+
 body {
  /* min-height: 60rem; */
   padding-top: 3.5rem;
@@ -9,9 +14,6 @@ body {
   margin: 0; /* Supprime les marges par défaut */
 }
 
+.full-height { display: flex; flex-direction: column; height: 100%; }
 
-#geneva-map {
-    height: 100%;
-    width: 100%;
-    z-index: 10;
-}
+.fill-height { flex-grow: 1; width: 100%; }
