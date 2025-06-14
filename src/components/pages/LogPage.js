@@ -3,6 +3,7 @@
 // ========================
 import '../../components/partials/logmap.js';
 import '../../components/partials/logtable.js';
+import '../../components/partials/LogFooter.js';
 
 class LogPage extends HTMLElement {
 
@@ -12,9 +13,7 @@ class LogPage extends HTMLElement {
     }
 
     render() {
-        this.innerHTML = `
-
-
+        this.innerHTML = /*html */`
                 <div class="row">
                     <div class="col-lg-8 h-100">
                          <log-map class="h-100" id="logMap"></log-map>
@@ -23,6 +22,7 @@ class LogPage extends HTMLElement {
                         <log-table class="h-100"></log-table>
                     </div>
                 </div>
+                <log-footer></log-footer>
 
         `;
     }
