@@ -15,12 +15,13 @@ class LogMap extends HTMLElement {
     }
 
   render() {
-    this.innerHTML = ` 
+    this.innerHTML = /*html */ ` 
         <style>
             #geneva-map {
                 width: 100%;
                 height: 100% !important;
                 margin-top: 10px;
+                margin-bottom: 10px;
                 min-height: 85vh;
             }
         </style>           
