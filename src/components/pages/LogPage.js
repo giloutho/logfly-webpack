@@ -1,8 +1,8 @@
 // ========================
 // https://fr.javascript.info/custom-elements
 // ========================
-import '../../components/partials/logmap.js';
-import '../../components/partials/logtable.js';
+import '../../components/partials/LogMap.js';
+import '../../components/partials/LogTable.js';
 import '../../components/partials/LogFooter.js';
 
 class LogPage extends HTMLElement {
@@ -15,11 +15,11 @@ class LogPage extends HTMLElement {
     render() {
         this.innerHTML = /*html */`
                 <div class="row">
-                    <div class="col-lg-8 h-100">
+                    <div class="col-lg-7 h-100">
                          <log-map class="h-100" id="logMap"></log-map>
                     </div>
-                    <div class="col-lg-4 h-100">
-                        <log-table class="h-100"></log-table>
+                    <div class="col-lg-5 h-100">
+                        <log-table class="h-100" style="font-size: 12px;font-weight: 400; line-height: 1;"></log-table>
                     </div>
                 </div>
                 <log-footer></log-footer>

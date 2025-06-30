@@ -73,3 +73,57 @@ ipcMain.handle('db:insert', async (event, args) => {
         return { success: false, message: error.message };
     }
 });
+
+ipcMain.handle('db:update', async (event, args) => {
+    console.log('db:update called with args:', args);
+    if (!db) {
+        return { success: false, message: 'No database open' };
+    }
+    try {
+        const table = args.sqltable;
+        const params = args.sqlparams; // objet {colonne: valeur}
+        const where = args.sqlwhere;   // objet {colonne: valeur}
+        // Construction de la clause SET
+        const setClause = Object.keys(params)
+            .map(col => `${col} = ?`)
+            .join(', ');
+        // Construction de la clause WHERE
+        const whereClause = Object.keys(where)
+            .map(col => `${col} = ?`)
+            .join(' AND ');
+        // Construction du tableau de valeurs
+        const values = [...Object.values(params), ...Object.values(where)];
+        // Requête SQL finale
+        const sqlQuery = `UPDATE ${table} SET ${setClause} WHERE ${whereClause}`;
+        console.log('Constructed SQL update:', sqlQuery, values);
+        const stmt = db.prepare(sqlQuery);
+        const result = stmt.run(...values);
+        if (result.changes === 0) {
+            throw new Error('No rows were updated');
+        }
+        return { success: true, result };
+    } catch (error) {
+        return { success: false, message: error.message };
+    }
+});
+
+// handler pour une requête avec un seul paramètre
+ipcMain.handle('db:oneparam', async (event, args) => {
+    console.log('db:oneparam called ')
+    if (!db) {
+        return { success: false, message: 'No database open' };
+    }
+    try {
+        const req = args.sqlquery;
+        const param = args.sqlparam;
+        const stmt = db.prepare(req)
+        const resReq = stmt.get(param)  
+        if (!resReq) {
+            return { success: false, message: `No result found with ${param}` };
+        }
+        console.log('Result:', JSON.stringify(resReq));         
+        return { success: true, result: resReq };
+    } catch (error) {
+        return { success: false, message: error.message };
+    }
+});

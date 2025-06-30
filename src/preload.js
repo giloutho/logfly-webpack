@@ -30,11 +30,22 @@
 * que l'on a décidé d'adopter. Pour l'instant on s'est limité à invoke 
 */
 
+
 const { contextBridge, ipcRenderer } = require('electron')
 
 contextBridge.exposeInMainWorld('electronAPI', {
     // from https://medium.com/developer-rants/opening-system-dialogs-in-electron-from-the-renderer-6daf49782fd8
     openFile: () => ipcRenderer.invoke('dialog:openFile'),
+
+    dbOpen: async (filePath) => {
+        const params = {
+            invoketype: 'db:open',
+            args: { filePath }
+        };
+        return await ipcRenderer.invoke('db:open', params.args);
+    },    
+
+    langmsg: () => ipcRenderer.invoke('lang:msg'),
     
     invoke: (params) => {
         const channel = params.invoketype

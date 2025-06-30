@@ -1,3 +1,7 @@
+// A éliminer....
+// Cette requête peut être executée avec db:oneparam de dbaccess.js
+// gardée pour référence
+
 const {ipcMain} = require('electron')
 
 // Exemple d'un handler pour exécuter une requête
@@ -26,3 +30,4 @@ ipcMain.handle('db:volbyid', async (event, flightId) => {
         return { success: false, message: error.message };
     }
 });
+

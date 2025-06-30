@@ -2,7 +2,7 @@ import '../node_modules/bootstrap/dist/css/bootstrap.min.css'
 import '../node_modules/bootstrap-icons/font/bootstrap-icons.css'
 import './index.css';
 import 'bootstrap';
-import './components/pages/Navmenu.js';
+import './components/pages/NavMenu.js';
 import './components/pages/LogPage.js';
 import './components/pages/DbPage.js';
 import './components/pages/TrackPage.js';

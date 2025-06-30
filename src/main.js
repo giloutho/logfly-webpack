@@ -1,6 +1,7 @@
 const { app, BrowserWindow, ipcMain, dialog } = require('electron');
 const path = require('node:path');
 const fs = require('node:fs');
+let langjson
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require('electron-squirrel-startup')) {
@@ -32,6 +33,7 @@ const createWindow = () => {
   //     // and so on
   // };
   loadMainProcesses()
+  loadLanguage()
 };
 
 
@@ -59,6 +61,30 @@ app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit();
   }
+});
+
+function loadLanguage() {
+  let currLangFile = '../lang/'
+  //let currLang = store.get('lang')
+  let currLang = 'fr'
+  try {    
+    if (currLang != undefined && currLang != 'en') {
+        //currLangFile += currLang+'.json'
+        // currLangFile = path.join(__dirname, 'lang', currLang + '.json');
+        // let content = fs.readFileSync(currLangFile);
+        // Webpack va inclure ce fichier dans le bundle
+        langjson = require(`./lang/${currLang}.json`);
+     //   let langjson = JSON.parse(content);
+    } else {
+      langjson = {}
+    }
+  } catch (error) {
+    console.error('[main.js] Error while loading : '+currLangFile+' error :'+error)
+  }  
+}
+
+ipcMain.handle('lang:msg', async (event, args) => {
+  return langjson
 });
 
 // Require each JS file in the ipcmain folder

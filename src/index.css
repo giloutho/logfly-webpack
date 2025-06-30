@@ -12,8 +12,64 @@ body {
   padding-top: 3.5rem;
   height: 100%;
   margin: 0; /* Supprime les marges par défaut */
+  background-color: #f8f9fa;
 }
 
 .full-height { display: flex; flex-direction: column; height: 100%; }
 
 .fill-height { flex-grow: 1; width: 100%; }
+
+/* Navbar supérieure bleue comme demandé */
+.top-navbar {
+    background: linear-gradient(135deg, #1a6dcc 0%, #134578 100%);
+    box-shadow: 0 2px 15px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+    min-height: 40px;
+    height: 48px;
+}
+
+/* Navbar inférieure bleue */
+.bottom-navbar {
+    background: linear-gradient(135deg, #185694 0%, #1a6dcc 100%);
+    color: white;
+    z-index: 1000;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+    width: 100vw;
+    left: 0;
+    right: 0;
+    position: fixed;
+    bottom: 0;
+}
+
+.bottom-navbar .navbar-nav .nav-item img {
+    margin-right: 40px;
+}
+
+.bottom-navbar .navbar-nav .nav-item:last-child img {
+    margin-right: 0;
+}
+
+/* Pour placer la modale en bas de la fenêtre */
+.modal.modal-bottom .modal-dialog {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  margin: 0 auto;
+  top: auto;
+  transform: none;
+  width: 100%;
+  max-width: 600px; /* ou la largeur souhaitée */
+}
+
+.comment-has-content {
+    filter: drop-shadow(0 0 4px #1a6dcc) brightness(1.2);
+    opacity: 1;
+}
+.comment-no-content {
+    opacity: 0.5;
+}
+
+#newvalue {
+    text-align: left !important;
+}
