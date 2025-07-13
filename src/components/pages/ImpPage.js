@@ -1,120 +1,93 @@
 // ========================
-// WEB COMPONENT: PAGE SERVICES
+// Tracks import in logbook
 // ========================
-
 import { api } from '../../js/testapi.js';
-import { router } from '../../renderer.js';
 
 class ImpPage extends HTMLElement {
     constructor() {
         super();
-        this.services = [];
     }
 
     async connectedCallback() {
-        this.renderLoading();
-        this.services = await api.getServices();
         this.render();
         this.setupEventListeners();
     }
 
-    renderLoading() {
-        this.innerHTML = `
-            <div class="page">
-                <div class="container py-5 text-center">
-                    <h2 class="mb-4 fw-bold">Nos Services</h2>
-                    <div class="d-flex justify-content-center py-5">
-                        <div class="spinner-border text-primary" role="status">
-                            <span class="visually-hidden">Chargement...</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `;
-    }
-
     setupEventListeners() {
-        this.querySelectorAll('.service-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                window.location.hash = '/contact';
-                router.loadRoute();
+        const impGpsSky3 = this.querySelector('#imp-gps-sky3');
+        if (impGpsSky3) {
+            impGpsSky3.addEventListener('click', (e) => {
+                e.preventDefault(); // si c'est un lien <a>
+                this.callUsbGps('sky3');
             });
-        });
+        }
+
+        const impDisk = this.querySelector('#imp-disk');
+        if (impDisk) {
+            impDisk.addEventListener('click', (e) => {
+                e.preventDefault(); // si c'est un lien <a>
+                // pour debugging
+              //  this.callUsbGps('xctracer');
+                this.callUsbGps('sky3');
+            });
+        }        
     }
 
     render() {
-        this.innerHTML = `
-            <div class="page">
-                <div class="container py-5">
-                    <div class="text-center mb-5">
-                        <h2 class="fw-bold">Nos Services</h2>
-                        <p class="lead">Découvrez notre gamme complète de solutions</p>
-                    </div>
-                    
-                    <div class="row row-cols-1 row-cols-md-2 g-4 mb-5">
-                        ${this.services.map(service => `
-                            <div class="col">
-                                <div class="card service-card h-100 border-0 shadow-sm">
-                                    <div class="card-body p-4">
-                                        <div class="d-flex align-items-center mb-3">
-                                            <div class="bg-primary bg-opacity-10 p-3 rounded-circle me-3">
-                                                <i class="bi bi-${service.icon} fs-2 text-primary"></i>
-                                            </div>
-                                            <h3 class="card-title mb-0">${service.name}</h3>
-                                        </div>
-                                        <p class="card-text mb-4">${service.description}</p>
-                                        <button class="btn btn-outline-primary service-btn">
-                                            <i class="bi bi-info-circle me-2"></i> En savoir plus
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        `).join('')}
-                    </div>
-                    
-                    <div class="card border-0 shadow-sm">
-                        <div class="card-header bg-primary text-white">
-                            <h3 class="mb-0">Nos Tarifs</h3>
-                        </div>
-                        <div class="card-body p-0">
-                            <div class="table-responsive">
-                                <table class="table table-hover mb-0">
-                                    <thead class="table-light">
-                                        <tr>
-                                            <th>Service</th>
-                                            <th>Description</th>
-                                            <th>Tarif</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr>
-                                            <td>Site Vitrine</td>
-                                            <td>Site web de présentation (5 pages)</td>
-                                            <td class="fw-bold text-primary">1 500 €</td>
-                                        </tr>
-                                        <tr>
-                                            <td>Application Web</td>
-                                            <td>Application monopage (SPA) interactive</td>
-                                            <td class="fw-bold text-primary">À partir de 5 000 €</td>
-                                        </tr>
-                                        <tr>
-                                            <td>Refonte de site</td>
-                                            <td>Modernisation d'un site existant</td>
-                                            <td class="fw-bold text-primary">2 500 €</td>
-                                        </tr>
-                                        <tr>
-                                            <td>Maintenance</td>
-                                            <td>Support technique mensuel</td>
-                                            <td class="fw-bold text-primary">300 €/mois</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+        this.innerHTML = /*html */`
+            <div class="container">
+                <ul class="nav nav-pills">
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button" aria-expanded="false">Dropdown</a>
+                    <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" id="imp-gps-sky3" href="#">Skytraxx 3/4/5</a></li>
+                    <li><a class="dropdown-item" href="#">Another action</a></li>
+                    <li><a class="dropdown-item" href="#">Something else here</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item" href="#">Separated link</a></li>
+                    </ul>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link active" id="imp-disk" aria-current="page" href="#">Active</a>
+                </li>                
+                <li class="nav-item">
+                    <a class="nav-link" href="#">Link</a>
+                </li>
+                </ul>               
             </div>
         `;
+    }
+
+    async callUsbGps(typeGps) {
+        try {
+            const params = {    
+                invoketype: 'gps:usb',  
+                args :{   
+                    typeGps : typeGps
+                }
+            }            
+            const resultUsb = await window.electronAPI.invoke(params);
+            if (resultUsb) {
+                console.log(`dossier flights trouvé (${resultUsb.pathFlights})`);
+                const params = {    
+                    invoketype: 'gps:impdisk',  
+                args : {   
+                        importPath : resultUsb.pathFlights
+                    }
+                }               
+                const resImport = await window.electronAPI.invoke(params);
+                if (resImport.success) {
+                    console.log(`[ImpPage] Import successful: ${resImport.result.length} flights imported.`);
+                    // You can handle the result here, e.g., update the UI or store the data
+                } else {
+                    console.error(`[ImpPage] Import failed: ${resImport.message}`);
+                }
+            } else {
+                console.warn('[ImpPage] Aucun résultat trouvé pour le GPS USB.');
+            }
+        } catch (error) {
+            console.error('[ImpPage] Error calling USB GPS:', error);
+        }
     }
 }
 customElements.define('imp-page', ImpPage);

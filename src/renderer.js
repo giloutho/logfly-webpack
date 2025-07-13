@@ -12,9 +12,9 @@ import './components/pages/ConfPage.js';
 
 const router = {
     routes: {
-        '/': 'log-page',
+        '/': 'imp-page',
         '/dbtest' : 'db-page',
-        '/import': 'imp-page',
+        '/import': 'log-page',
         '/track': 'track-page',
         '/xcnav': 'xcnav-page',
         '/config': 'conf-page'

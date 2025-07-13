@@ -106,24 +106,3 @@ ipcMain.handle('db:update', async (event, args) => {
         return { success: false, message: error.message };
     }
 });
-
-// handler pour une requête avec un seul paramètre
-ipcMain.handle('db:oneparam', async (event, args) => {
-    console.log('db:oneparam called ')
-    if (!db) {
-        return { success: false, message: 'No database open' };
-    }
-    try {
-        const req = args.sqlquery;
-        const param = args.sqlparam;
-        const stmt = db.prepare(req)
-        const resReq = stmt.get(param)  
-        if (!resReq) {
-            return { success: false, message: `No result found with ${param}` };
-        }
-        console.log('Result:', JSON.stringify(resReq));         
-        return { success: true, result: resReq };
-    } catch (error) {
-        return { success: false, message: error.message };
-    }
-});

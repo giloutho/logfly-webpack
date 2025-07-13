@@ -1,9 +1,9 @@
 // ========================
 // https://fr.javascript.info/custom-elements
 // ========================
-import '../../components/partials/LogMap.js';
-import '../../components/partials/LogTable.js';
-import '../../components/partials/LogFooter.js';
+import '../partials/logbook/LogMap.js';
+import '../partials/logbook/LogTable.js';
+import '../partials/logbook/LogFooter.js';
 
 class LogPage extends HTMLElement {
 
