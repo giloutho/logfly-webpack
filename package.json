@@ -42,6 +42,7 @@
     "gettext.js": "^2.0.3",
     "iana-tz-data": "^2019.1.0",
     "leaflet": "^1.9.4",
+    "read-last-lines": "^1.8.0",
     "zoned-date-time": "^1.1.0"
   }
 }

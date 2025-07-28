@@ -6,23 +6,25 @@ import { DatabaseSync } from 'node:sqlite';
 import tz_lookup from '@photostructure/tz-lookup';
 import ZonedDateTime from "zoned-date-time";
 import {zoneData} from "iana-tz-data";
+import ReadLastLines from "read-last-lines"
 const trigo = require('../../../js/geo/trigo.js'); 
 
 let db = null;
 // for debugging purposes
 let dbPath = '../../../assets/test.db';
 dbPath = new URL(dbPath, import.meta.url).pathname; // Convertit le chemin relatif en absolu
-let result = [];
+let result
 
 
 ipcMain.handle('gps:impdisk', async (event, args) => {
+    result = [];
     try {
         db = new DatabaseSync(dbPath);
         let igcFiles = searchIgc(args.importPath);
         if (igcFiles.length > 0) {
-            console.log(`[gps:impdisk] found ${igcFiles.length} IGC files in ${args.importPath}`);
+         //   console.log(`[gps:impdisk] found ${igcFiles.length} IGC files in ${args.importPath}`);
             const resultScan = await scanIGCFiles(igcFiles);
-            console.log(`[gps:impdisk] scanning IGC files completed. result length: ${result.length}`);
+          //  console.log(`[gps:impdisk] scanning IGC files completed. result length: ${result.length}`);
             return { success: true, result };
         } else {
             return { success: false, message: `No track files found in ${args.importPath}`}
@@ -60,16 +62,22 @@ function searchIgc(importPath) {
 async function scanIGCFiles(igcFiles) {
     for (const file of igcFiles) {
         const fisrtLines = await readUntilBLine(file);
-        if (fisrtLines.length > 0) {
-            console.log(`[scanIGCFiles] First line of ${file}: ${fisrtLines[0]}`);
-        }
     }
+    // Tri du tableau result par date et heure de décollage décroissantes
+    result.sort((a, b) => {
+        // Concatène date et startTime, puis compare les timestamps
+        const tsA = Date.parse(`${a.date}T${a.startTime}Z`);
+        const tsB = Date.parse(`${b.date}T${b.startTime}Z`);
+        return tsB - tsA; // décroissant
+    });
 }
 
 async function readUntilBLine(file) {
     const lines = [];
     let flightDate = null;
     let flightPilot = null;
+    let flightGlider = null;
+
     const stream = fs.createReadStream(file, { encoding: 'utf8' });
     const rl = readline.createInterface({ input: stream });
 
@@ -81,29 +89,45 @@ async function readUntilBLine(file) {
         }
         if (headerType === 'PLT') {
             flightPilot = parsePilot(line);
-        }
+        }   
+        if (headerType === 'GTY') {
+            flightGlider = parseGlidertype(line);
+        }     
         if (line.startsWith('B')) {
             rl.close();
             const firstFixe = parseBLine(line);
             const timestamp = Date.parse(`${flightDate}T${firstFixe.time}Z`);        
             const offsetUTC = await computeOffsetUTC(firstFixe.latitude, firstFixe.longitude, timestamp);
             const launchTime =  await computeLocalLaunchTime(timestamp, offsetUTC);
-            const toInsert = await flightByTakeOff(firstFixe.latitude, firstFixe.longitude, timestamp, offsetUTC)    
+            const flightFound = await flightByTakeOff(firstFixe.latitude, firstFixe.longitude, timestamp, offsetUTC)    
             // from https://stackoverflow.com/questions/423376/how-to-get-the-file-name-from-a-full-path-using-javascript
-            const filename = file.replace(/^.*[\\\/]/, '')     
+            const filename = file.replace(/^.*[\\\/]/, '')    
+            const lastTimestamp = await computeLastTime(file, flightDate);
+            let duration = null;
+            if (lastTimestamp !== null) {
+                duration = Math.round((lastTimestamp - timestamp) / 1000); // Durée en secondes
+            }
             const flight = {
-                toInsert: toInsert,
+                toInsert: !flightFound, // true if the flight is not found in the database
+                newflight: !flightFound,
                 date: flightDate,
                 startTime: launchTime,
                 file: filename,
                 pilot: flightPilot,
+                glider: flightGlider,
                 path: file,
+                latitude: firstFixe.latitude,
+                longitude: firstFixe.longitude,
+                altitude: firstFixe.altitude,
+                duration: duration,
+                offsetUTC: offsetUTC
             }
             result.push(flight);
-            console.log(`${filename} D ${flightDate} Start local : ${launchTime} ttoInsert : ${toInsert}`);   
+           // console.log(`${filename} D ${flightDate} Start local : ${launchTime} ttoInsert : ${toInsert}`);   
 
             break;
         }
+
     }
     return lines;
 }
@@ -127,7 +151,16 @@ function parsePilot(line) {
     if (!match) {
       throw new Error(`Invalid ${headerType} header at line ${this.lineNumber}: ${line}`);
     }
-    //console.log(`[parsePilot] match: ${JSON.stringify(match)}`);
+    return (match[2] || match[3] || '').replace(/_/g, underscoreReplacement).trim();
+  }
+
+function parseGlidertype(line) {
+    const underscoreReplacement = ' '    
+    const RE_GTY_HEADER = /^H(\w)GTY(?:.{0,}?:(.*)|(.*))$/;
+    let match = line.match(RE_GTY_HEADER);
+    if (!match) {
+      throw new Error(`Invalid ${headerType} header at line ${this.lineNumber}: ${line}`);
+    }
     return (match[2] || match[3] || '').replace(/_/g, underscoreReplacement).trim();
   }
 
@@ -140,14 +173,34 @@ function parsePilot(line) {
     let time = `${match[1]}:${match[2]}:${match[3]}`;
     let latitude = parseLatitude(match[4], match[5], match[6], match[7]);
     let longitude = parseLongitude(match[8], match[9], match[10], match[11]);
+    let gpsAltitude = match[14] === '00000' ? null : parseInt(match[14], 10);
     const fixe = {
         time: time,
         latitude: latitude,
         longitude: longitude,
+        altitude: gpsAltitude
     };
 
     return fixe;
   }
+
+// Il faut calculer la durée du vol sans décoder entièrement le fichier IGC
+// on va donc chercher la dernière ligne B de la trace IGC
+async function computeLastTime(file, flightDate) {
+    const lastLines = await ReadLastLines.read(file, 20);
+    const lastLinesArray = lastLines.split('\n');
+    for (let i = lastLinesArray.length - 1; i >= 0; i--) {
+        const line = lastLinesArray[i];
+        if (line.startsWith('B')) {
+            // Traitement de la ligne B trouvée
+            const lastFixe = parseBLine(line);
+            const timestamp = Date.parse(`${flightDate}T${lastFixe.time}Z`);
+            //console.log(`flightDate : ${flightDate} lastFixe : ${lastFixe.time} gives timestamp : ${timestamp}  `);
+            return timestamp;
+        }
+    }
+    return null; // Si aucune ligne B n'est trouvée                  
+}  
 
 function parseLatitude(dd, mm, mmm, ns) {
     
@@ -160,8 +213,6 @@ function parseLatitude(dd, mm, mmm, ns) {
     return (ew === 'W') ? -degrees : degrees;
   }
 
-// function computeLocalLaunchTime(lat, lon, timestamp) {
-//     let offsetUTC = computeOffsetUTC(lat, lon, timestamp)   
 async function computeLocalLaunchTime(timestamp, offsetUTC) {
     /**
      * IMPORTANT : when a date oject is requested from the timestamp, 

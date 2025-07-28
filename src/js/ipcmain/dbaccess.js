@@ -1,14 +1,22 @@
 const {ipcMain} = require('electron')
+const fs = require('fs');
 import { DatabaseSync } from 'node:sqlite';
 
 let db = null;
 
 ipcMain.handle('db:open', async (event, args) => {
     const dbPath = args.filePath;
+    if (!fs.existsSync(dbPath)) {
+        return { success: false, message: 'Database file does not exist' };
+    }    
     try {
         db = new DatabaseSync(dbPath);
-        console.log('Database opened successfully');
-        return { success: true, message: 'Database opened successfully' };
+        const stmtVol = db.prepare(`SELECT name FROM sqlite_master WHERE type='table' AND name=?`)
+        const resVol = stmtVol.get('Vol')
+        if (resVol != undefined && resVol != null && resVol['name'] == 'Vol') {
+            return { success: true, message: 'Database opened successfully' };
+        } 
+        return { success: false, message: 'Database is not valid' };
     } catch (error) {
         console.log('Error opening database:', error);
         db = null;
@@ -22,9 +30,7 @@ ipcMain.handle('db:open', async (event, args) => {
 // on peut utiliser les apostrophes simples (') sans les échapper :
 // const sql = "SELECT V_ID, strftime('%d-%m-%Y',V_date) AS Day, strftime('%H:%M',V_date) AS Hour FROM Vol ORDER BY V_Date DESC";
 ipcMain.handle('db:query', async (event, args) => {
-    console.log('db:query called ')
     const req = args.sqlquery;
-    console.log('db:query called with args:', req);
     if (!db) {
         return { success: false, message: 'No database open' };
     }
@@ -40,7 +46,6 @@ ipcMain.handle('db:query', async (event, args) => {
 
 // Exemple d'un handler pour réaliser une insertion
 ipcMain.handle('db:insert', async (event, args) => {
-    console.log('db:insert called with args:', args);
     if (!db) {
         return { success: false, message: 'No database open' };
     }
@@ -52,17 +57,15 @@ ipcMain.handle('db:insert', async (event, args) => {
         const columns = Object.keys(params).join(', ');
         // Échappement des quotes simples dans les valeurs
         const values = Object.values(params)
-            .map(value => `'${value.replace(/'/g, "''")}'`)  // Échappement des quotes simples
+            .map(value => `'${String(value).replace(/'/g, "''")}'`)
             .join(', ');
 
         // Assemblage final de la requête
         const sqlQuery = `INSERT INTO ${table} (${columns}) VALUES (${values})`;
-        console.log('Constructed SQL query:', sqlQuery);
         const stmt = db.prepare(sqlQuery)
         const result = stmt.run();
-        // Log the result of the insertion
-       // const result = { changes: stmt.changes, lastInsertRowid: stmt.lastInsertRowid };
-        // Return the result of the insertion
+        // Sqlite statement.run returns an object with changes and lastInsertRowid properties
+        // result = { changes: stmt.changes, lastInsertRowid: stmt.lastInsertRowid };
         if (result.changes === 0) {
             throw new Error('No rows were inserted');
         }

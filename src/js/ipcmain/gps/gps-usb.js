@@ -59,8 +59,7 @@ function exploreDrives(drives, typeGPS) {
     // Récupère la config des dossiers pour ce type de GPS
     const folders = gpsFolders[typeGPS];
     if (!folders) {
-        console.warn(`Type GPS inconnu : ${typeGPS}`);
-        return;
+      return { success: false, message: 'Unknown GPS' };
     }
     for (const drive of filteredDrives) {
       console.log(`Nom: ${drive.description}, Capacité: ${drive.size} octets, Chemin: ${drive.mountpoints.map(mp => mp.path).join(', ')}`);
@@ -80,6 +79,7 @@ function exploreDrives(drives, typeGPS) {
                     file.startsWith(folders.txtPrefix)
                 ) {
                     validFlights = true;
+                    resultUsb.success = true;
                     resultUsb.usbPath = usbPath;
                     resultUsb.pathFlights = usbPath;
                     break;
@@ -115,12 +115,13 @@ function exploreDrives(drives, typeGPS) {
           }
         }  
         if (validFlights && validSpecial) {
+            resultUsb.success = true;
             return resultUsb; // On retourne le résultat et on arrête la boucle
         }
       } else {
-        console.warn(`Aucun point de montage trouvé pour le disque ${drive.description}`);
+        return { success: false, message: `Error : ${error.message}` };
       }
     }
-    // Si aucun résultat trouvé
-    return null;
+    // Si aucun disque n'a été trouvé ou si aucun dossier valide n'a été détecté
+    return { success: false, message: 'No disk or flights folder detected' };
 }

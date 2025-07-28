@@ -36,6 +36,7 @@ const { contextBridge, ipcRenderer } = require('electron')
 contextBridge.exposeInMainWorld('electronAPI', {
     // from https://medium.com/developer-rants/opening-system-dialogs-in-electron-from-the-renderer-6daf49782fd8
     openFile: () => ipcRenderer.invoke('dialog:openFile'),
+    readFile: (filePath) => ipcRenderer.invoke('file:read', filePath),
 
     dbOpen: async (filePath) => {
         const params = {

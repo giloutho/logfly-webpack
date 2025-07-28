@@ -303,38 +303,38 @@ class LogTable extends HTMLElement {
         // Créer la nouvelle instance DataTable
         this.dataTableInstance = new DataTable(table, dataTableOptions);
         this.dataTableInstance.on('select', (e, dt, type, indexes) => {
-            if (type === 'row') {
-                // **********************************************************
-                //.            IMPORTANT
-                // **********************************************************
-                // Il faudrait passer le nom de lignes sélectionnées
-                // à LogFooter. Si > 1 LogFooter afficher simplement multisélection
-                // après une action changement de voile ou de site
-                // il faut gérer dans LogFooter la mise à jour de flight-label
-                let countRows = this.dataTableInstance.rows({ selected: true }).count();
-                console.log('Selected rows count: ' + countRows);
-                const rowData = dt.row(indexes).data();
-                const rowIndex = indexes
-                this.dispatchEvent(new CustomEvent('row-selected', {
-                    detail: { rowIndex, rowData },
-                    bubbles: true, // pour permettre la remontée dans le DOM
-                    composed: true // pour traverser le shadow DOM si besoin
-                }));
+        if (type === 'row') {
+            // **********************************************************
+            //.            IMPORTANT
+            // **********************************************************
+            // Il faudrait passer le nom de lignes sélectionnées
+            // à LogFooter. Si > 1 LogFooter afficher simplement multisélection
+            // après une action changement de voile ou de site
+            // il faut gérer dans LogFooter la mise à jour de flight-label
+            let countRows = this.dataTableInstance.rows({ selected: true }).count();
+            console.log('Selected rows count: ' + countRows);
+            const rowData = dt.row(indexes).data();
+            const rowIndex = indexes
+            this.dispatchEvent(new CustomEvent('row-selected', {
+                detail: { rowIndex, rowData },
+                bubbles: true, // pour permettre la remontée dans le DOM
+                composed: true // pour traverser le shadow DOM si besoin
+            }));
 
-                // // Affiche la date dans la modale
-                // this.querySelector('#flight-date').textContent = `Date du vol : ${rowData.Day}`;
-                // // Affiche la modale Bootstrap
-                // const modal = new Modal(this.querySelector('#flightModal'));
-                // modal.show();
+            // // Affiche la date dans la modale
+            // this.querySelector('#flight-date').textContent = `Date du vol : ${rowData.Day}`;
+            // // Affiche la modale Bootstrap
+            // const modal = new Modal(this.querySelector('#flightModal'));
+            // modal.show();
 
-                // // Gestion du bouton Valider
-                // this.querySelector('#validate-btn').onclick = () => {
-                //     const comment = this.querySelector('#flight-comment').value;
-                //     console.log('Commentaire saisi :', comment);
-                //     // Tu peux ensuite traiter ou sauvegarder ce commentaire ici
-                //     modal.hide();
-                // };
-            }
+            // // Gestion du bouton Valider
+            // this.querySelector('#validate-btn').onclick = () => {
+            //     const comment = this.querySelector('#flight-comment').value;
+            //     console.log('Commentaire saisi :', comment);
+            //     // Tu peux ensuite traiter ou sauvegarder ce commentaire ici
+            //     modal.hide();
+            // };
+        }
         });
         this.dataTableInstance.row(':eq(0)').select()    // Sélectionne la première ligne
     }    

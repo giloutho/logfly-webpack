@@ -1,5 +1,6 @@
 const {ipcMain} = require('electron')
 const { dialog } = require('electron')
+const fs = require('fs');
 
 /* 
 * La fonction appelante devra passer un objet args comportant à minima
@@ -16,5 +17,11 @@ ipcMain.handle('dialog:openFile', async (event,args) => {
         ...args
     });
     
+    return result;
+});
+
+ipcMain.handle('file:read', async (event, args) => {
+    const { filePath } = args;
+    const result = await fs.promises.readFile(filePath, 'utf-8');
     return result;
 });
